@@ -18,6 +18,7 @@ func main() {
 	result := part1(data)
 	fmt.Println("Part 1 answer: ", result)
 
+	// TODO: Part 2 is not complete yet
 	result = part2(data)
 	fmt.Println("Part 2 answer: ", result)
 }
@@ -85,9 +86,6 @@ func part2(data string) int {
 	mapRanges := getMapRanges(data)
 
 	locations := make([]int, len(seedRanges))
-
-	// Keep track of all seed locations
-	var seedLocations []int
 
 	// Loop over the seeds
 	for si, seedRange := range seedRanges {
