@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -17,15 +18,14 @@ func main() {
 	result := part1(data)
 	fmt.Println("Part 1 answer: ", result)
 
-	//result = part2(data)
-	//fmt.Println("Part 2 answer: ", result)
+	result = part2(data)
+	fmt.Println("Part 2 answer: ", result)
 }
 
 func part1(data string) int {
 	lines := strings.Split(data, "\n")
 
 	seeds := getSeeds(lines[0])
-	println("Seeds: ", seeds)
 
 	mapRanges := getMapRanges(data)
 
@@ -41,9 +41,7 @@ func part1(data string) int {
 
 		var prevMapVal int
 		// Loop over maps
-		for j, m := range mapRanges {
-			println("\nMap ", j+1)
-
+		for _, m := range mapRanges {
 			prevMapVal = int(^uint(0) >> 1)
 
 			// Check if seed is within any range
@@ -71,9 +69,68 @@ func part1(data string) int {
 		}
 	}
 
-	println("\nLocations: ")
 	for _, l := range locations {
 		println(l)
+	}
+
+	return Min(locations)
+
+}
+
+func part2(data string) int {
+	lines := strings.Split(data, "\n")
+
+	seedRanges := getSeedRanges(lines[0])
+
+	mapRanges := getMapRanges(data)
+
+	locations := make([]int, len(seedRanges))
+
+	// Keep track of all seed locations
+	var seedLocations []int
+
+	// Loop over the seeds
+	for si, seedRange := range seedRanges {
+
+		fmt.Println(time.Now(), " - Checking seedRange ", si, ": ", seedRange[0], seedRange[1])
+
+		for seed := seedRange[0]; seed <= seedRange[1]; seed++ {
+
+			locations[si] = seed
+
+			prevLocation := int(^uint(0) >> 1) // set prev to max
+			hasChanged := false
+
+			var prevMapVal int
+			// Loop over maps
+			for _, m := range mapRanges {
+
+				prevMapVal = int(^uint(0) >> 1)
+
+				// Check if seed is within any range
+				for _, r := range m {
+					destinationStart := r[0]
+					sourceStart := r[1]
+					rangeLen := r[2]
+
+					if (sourceStart <= locations[si]) && (locations[si] <= sourceStart+rangeLen) {
+
+						diff := sourceStart - destinationStart
+						newLocation := locations[si] - diff
+
+						if newLocation < prevMapVal {
+							hasChanged = true
+							prevLocation = locations[si] - diff
+							prevMapVal = prevLocation
+							break
+						}
+					}
+				}
+				if hasChanged {
+					locations[si] = prevLocation
+				}
+			}
+		}
 	}
 
 	return Min(locations)
@@ -138,5 +195,25 @@ func getSeeds(line string) []int {
 		seeds[i], _ = strconv.Atoi(s[i])
 	}
 	return seeds
+}
 
+func getSeedRanges(line string) [][]int {
+	s := strings.Fields(strings.Split(line, ":")[1])
+
+	seedRanges := make([][]int, len(s)/2)
+	x := 0
+	for i := 0; i < len(seedRanges); i++ {
+		start, _ := strconv.Atoi(s[x])
+		end, _ := strconv.Atoi(s[x+1])
+		seedRanges[i] = make([]int, 2)
+		if start > end {
+			seedRanges[i][0] = end
+			seedRanges[i][1] = start
+		} else {
+			seedRanges[i][0] = start
+			seedRanges[i][1] = end
+		}
+		x += 2
+	}
+	return seedRanges
 }
