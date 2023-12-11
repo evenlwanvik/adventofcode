@@ -60,8 +60,40 @@ func part1(data string) int {
 	return total
 }
 
-func part2(data string) int {
-	return 2
+func part1(data string) int {
+	lines := strings.Split(data, "\n")
+	nLines := len(lines)
+
+	//fmt.Printf("\nCard ranks: %s", string(game.CardRanks))
+
+	hands := make([]Hand, nLines)
+	scores := make([]Scores, nLines)
+
+	for i, hand := range hands {
+		hand.CreateHand(lines[i])
+		hand.getScore()
+
+		scores[i] = Scores{
+			Score: hand.Score,
+			Bid:   hand.Bid,
+		}
+
+	}
+
+	// Sort scores
+	sort.Slice(scores, func(i, j int) bool {
+		return scores[i].Score < scores[j].Score
+	})
+
+	total := 0
+	for i, score := range scores {
+		rank := i + 1
+		result := rank * score.Bid
+		total += result
+		fmt.Printf("\nRank %d - %d - bid %d =  %d", i+1, score.Score, score.Bid, result)
+	}
+
+	return total
 }
 
 type Scores struct {
@@ -79,10 +111,10 @@ type Hand struct {
 
 func (h *Hand) CreateHand(line string) {
 	cardRanks := map[rune]int{
-		'A': 14,
-		'K': 13,
-		'Q': 12,
-		'J': 11,
+		'A': 13,
+		'K': 12,
+		'Q': 11,
+		'J': 1,
 		'T': 10,
 		'9': 9,
 		'8': 8,
@@ -92,7 +124,6 @@ func (h *Hand) CreateHand(line string) {
 		'4': 4,
 		'3': 3,
 		'2': 2,
-		'1': 1,
 	}
 
 	lineSplit := strings.Split(line, " ")
@@ -114,6 +145,15 @@ func (h *Hand) getScore() {
 	threeALike := false
 	twoALike := false
 
+	// Find num jokers:
+	for i:=0; i<len(h.Cards); i++ {
+		if h.CardCounts[]
+	}
+	// If we have a J (score 1)
+	if _, exist := h.CardCounts[0]; exists {
+
+	}
+
 	// 5 alike
 	if len(h.CardCounts) == 1 {
 		h.Score = 7 * 10e13 //7000000
@@ -122,6 +162,7 @@ func (h *Hand) getScore() {
 	}
 
 	for _, cardCount := range h.CardCounts {
+
 		if cardCount == 4 {
 			// 4 alike
 			h.Score = 6 * 10e13
