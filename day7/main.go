@@ -10,6 +10,16 @@ import (
 	"strings"
 )
 
+const (
+	FIVE_OF_A_KIND  = 7 * 10e13
+	FOUR_OF_A_KIND  = 6 * 10e13
+	FULL_HOUSE      = 5 * 10e13
+	THREE_OF_A_KIND = 4 * 10e13
+	TWO_PAIR        = 3 * 10e13
+	ONE_PAIR        = 2 * 10e13
+	HIGH_CARD       = 1 * 10e13
+)
+
 func main() {
 	data, err := readFile("input.txt")
 	if err != nil {
@@ -34,9 +44,9 @@ func part1(data string) int {
 	scores := make([]Scores, nLines)
 
 	for i, hand := range hands {
-		hand.CreateHand(lines[i])
+		hand.CreateHand(lines[i], false)
 		hand.getScore()
-
+		hand.getSecondScore()
 		scores[i] = Scores{
 			Score: hand.Score,
 			Bid:   hand.Bid,
@@ -54,30 +64,27 @@ func part1(data string) int {
 		rank := i + 1
 		result := rank * score.Bid
 		total += result
-		fmt.Printf("\nRank %d - %d - bid %d =  %d", i+1, score.Score, score.Bid, result)
+		//fmt.Printf("\nRank %d - %d - bid %d =  %d", i+1, score.Score, score.Bid, result)
 	}
-
 	return total
 }
 
-func part1(data string) int {
+func part2(data string) int {
 	lines := strings.Split(data, "\n")
 	nLines := len(lines)
-
-	//fmt.Printf("\nCard ranks: %s", string(game.CardRanks))
 
 	hands := make([]Hand, nLines)
 	scores := make([]Scores, nLines)
 
 	for i, hand := range hands {
-		hand.CreateHand(lines[i])
+		hand.CreateHand(lines[i], true)
 		hand.getScore()
-
+		hand.Score = hand.getWildcardScore()
+		hand.getSecondScore()
 		scores[i] = Scores{
 			Score: hand.Score,
 			Bid:   hand.Bid,
 		}
-
 	}
 
 	// Sort scores
@@ -90,7 +97,6 @@ func part1(data string) int {
 		rank := i + 1
 		result := rank * score.Bid
 		total += result
-		fmt.Printf("\nRank %d - %d - bid %d =  %d", i+1, score.Score, score.Bid, result)
 	}
 
 	return total
@@ -102,19 +108,20 @@ type Scores struct {
 }
 
 type Hand struct {
-	Rank       int
-	Score      int
-	Cards      []int
-	Bid        int
-	CardCounts map[int]int
+	Rank         int
+	Score        int
+	Cards        []rune
+	Bid          int
+	CardCounts   map[rune]int
+	CardStrength map[rune]int
 }
 
-func (h *Hand) CreateHand(line string) {
-	cardRanks := map[rune]int{
-		'A': 13,
-		'K': 12,
-		'Q': 11,
-		'J': 1,
+func (h *Hand) CreateHand(line string, jokerIsPresent bool) {
+	h.CardStrength = map[rune]int{
+		'A': 14,
+		'K': 13,
+		'Q': 12,
+		'J': 11,
 		'T': 10,
 		'9': 9,
 		'8': 8,
@@ -126,15 +133,19 @@ func (h *Hand) CreateHand(line string) {
 		'2': 2,
 	}
 
+	if jokerIsPresent {
+		h.CardStrength['J'] = 1 // Don't need to set the rest, their rank wil hold
+	}
+
 	lineSplit := strings.Split(line, " ")
 
 	for _, card := range []rune(lineSplit[0]) {
-		h.Cards = append(h.Cards, cardRanks[card])
+		h.Cards = append(h.Cards, card)
 	}
 
-	counts := make(map[int]int)
-	for _, num := range h.Cards {
-		counts[num]++
+	counts := make(map[rune]int)
+	for _, ru := range h.Cards {
+		counts[ru]++
 	}
 	h.CardCounts = counts
 
@@ -145,73 +156,110 @@ func (h *Hand) getScore() {
 	threeALike := false
 	twoALike := false
 
-	// Find num jokers:
-	for i:=0; i<len(h.Cards); i++ {
-		if h.CardCounts[]
-	}
-	// If we have a J (score 1)
-	if _, exist := h.CardCounts[0]; exists {
-
-	}
-
-	// 5 alike
 	if len(h.CardCounts) == 1 {
-		h.Score = 7 * 10e13 //7000000
-		h.getSecondScore()
+		h.Score = FIVE_OF_A_KIND
 		return
 	}
 
 	for _, cardCount := range h.CardCounts {
 
 		if cardCount == 4 {
-			// 4 alike
-			h.Score = 6 * 10e13
-			h.getSecondScore()
+			h.Score = FOUR_OF_A_KIND
 			return
 		}
 		if cardCount == 3 {
 			threeALike = true
 		}
 		if cardCount == 2 && twoALike {
-			// Two pairs
-			h.Score = 3 * 10e13
-			h.getSecondScore()
+			h.Score = TWO_PAIR
 			return
 		}
 		if cardCount == 2 {
 			twoALike = true
 		}
 		if threeALike && twoALike {
-			// Full house
-			h.Score = 5 * 10e13
-			h.getSecondScore()
+			h.Score = FULL_HOUSE
 			return
 		}
 	}
 	if threeALike {
-		// Three alike
-		h.Score = 4 * 10e13
-		h.getSecondScore()
+		h.Score = THREE_OF_A_KIND
 		return
 	}
 	if twoALike {
-		// One pair
-		h.Score = 2 * 10e13
-		h.getSecondScore()
+		h.Score = ONE_PAIR
 		return
 	}
 
 	// High card
-	h.Score = 1 * 10e13
-	h.getSecondScore()
+	h.Score = HIGH_CARD
 }
 
 func (h *Hand) getSecondScore() {
 	for i := 4; i >= 0; i-- {
 		coeff := int(math.Pow(10, float64(10-i*2)))
 
-		h.Score += coeff * h.Cards[i]
+		h.Score += coeff * h.CardStrength[h.Cards[i]]
 	}
+}
+
+func (h *Hand) getWildcardScore() int {
+
+	cardMap := map[rune]int{}
+
+	// Create map of numbers of cards (runes)
+	for _, card := range h.Cards {
+		cardMap[card] += 1
+	}
+
+	if cardMap['J'] >= 4 {
+		return FIVE_OF_A_KIND
+	}
+
+	if cardMap['J'] == 3 {
+		if len(cardMap) == 2 {
+			return FIVE_OF_A_KIND
+		}
+		return FOUR_OF_A_KIND
+	}
+
+	if cardMap['J'] == 2 {
+		if h.Score == TWO_PAIR {
+			return FOUR_OF_A_KIND
+		}
+		if h.Score == ONE_PAIR {
+
+			return THREE_OF_A_KIND
+		}
+		if h.Score == FULL_HOUSE {
+			return FIVE_OF_A_KIND
+		}
+	}
+
+	if cardMap['J'] == 1 {
+		if h.Score == THREE_OF_A_KIND {
+			return FOUR_OF_A_KIND
+		}
+		if h.Score == HIGH_CARD {
+			return ONE_PAIR
+		}
+		if h.Score == TWO_PAIR {
+			return FULL_HOUSE
+		}
+		if h.Score == ONE_PAIR {
+			return THREE_OF_A_KIND
+		}
+		if h.Score == FOUR_OF_A_KIND {
+			return FIVE_OF_A_KIND
+		}
+
+	}
+	return h.Score
+}
+
+func findNewScore(prevScore int, newScore int) int {
+	diff := newScore - prevScore
+	return prevScore + diff
 }
 
 func readFile(filename string) (string, error) {
