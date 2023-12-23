@@ -1,6 +1,8 @@
-package data
+package utils
 
-import "os"
+import (
+	"os"
+)
 
 func ReadFile(filename string) (string, error) {
 	data, err := os.ReadFile(filename)
@@ -8,4 +10,10 @@ func ReadFile(filename string) (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+func PrintLines(lines []string) {
+	for _, line := range lines {
+		println(line)
+	}
 }
