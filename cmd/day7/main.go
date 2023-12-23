@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/evenlwanvik/adventofcode/internal/data"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 )
 
 func main() {
-	data, err := readFile("input.txt")
+	data, err := data.ReadFile("data/day7.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,21 +104,21 @@ func part2(data string) int {
 }
 
 type Scores struct {
-	Score int
+	Score float64
 	Bid   int
 }
 
 type Hand struct {
 	Rank         int
-	Score        int
+	Score        float64
 	Cards        []rune
 	Bid          int
 	CardCounts   map[rune]int
-	CardStrength map[rune]int
+	CardStrength map[rune]float64
 }
 
 func (h *Hand) CreateHand(line string, jokerIsPresent bool) {
-	h.CardStrength = map[rune]int{
+	h.CardStrength = map[rune]float64{
 		'A': 14,
 		'K': 13,
 		'Q': 12,
@@ -197,13 +198,13 @@ func (h *Hand) getScore() {
 
 func (h *Hand) getSecondScore() {
 	for i := 4; i >= 0; i-- {
-		coeff := int(math.Pow(10, float64(10-i*2)))
+		coeff := math.Pow(10, float64(10-i*2))
 
 		h.Score += coeff * h.CardStrength[h.Cards[i]]
 	}
 }
 
-func (h *Hand) getWildcardScore() int {
+func (h *Hand) getWildcardScore() float64 {
 
 	cardMap := map[rune]int{}
 
@@ -260,12 +261,4 @@ func (h *Hand) getWildcardScore() int {
 func findNewScore(prevScore int, newScore int) int {
 	diff := newScore - prevScore
 	return prevScore + diff
-}
-
-func readFile(filename string) (string, error) {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
