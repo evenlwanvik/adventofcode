@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/evenlwanvik/adventofcode/internal/utils"
 	"log"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
-
-	"github.com/evenlwanvik/adventofcode/internal/data"
 )
 
 const (
@@ -22,7 +21,7 @@ const (
 )
 
 func main() {
-	data, err := data.ReadFile("data/day7.txt")
+	data, err := utils.ReadFile("data/day7_input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

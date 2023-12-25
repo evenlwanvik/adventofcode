@@ -1,5 +1,6 @@
 # Don't include input data
 input*
+data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
