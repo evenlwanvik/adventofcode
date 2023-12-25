@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/evenlwanvik/adventofcode/internal/math"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/evenlwanvik/adventofcode/internal/graph"
 	"github.com/evenlwanvik/adventofcode/internal/utils"
@@ -16,11 +18,15 @@ func main() {
 	}
 
 	result := part1(data)
-	fmt.Println("\nPart 1 answer: ", result)
+	fmt.Println("Part 1 answer: ", result)
 
-	//result = part2(data)
-	//fmt.Println("\nPart 2 answer: ", result)
+	result = part2(data)
+	fmt.Println("Part 2 answer: ", result)
 
+}
+
+func Part1FinalValCheck(currentNodeVal string) bool {
+	return currentNodeVal == "ZZZ"
 }
 
 func part1(data string) int {
@@ -33,9 +39,64 @@ func part1(data string) int {
 
 	g := graph.NewGraph()
 	g.CreateNodeMap(nodes)
-	//g.PrintVertices()
+	startNode := g.Vertices["AAA"]
 
-	return g.NumOfInstructions(instructions)
+	result := g.NumOfInstructions(
+		instructions,
+		startNode,
+		Part1FinalValCheck,
+	)
+
+	return result
+}
+
+func Part2FinalValCheck(currentNodeVal string) bool {
+	return currentNodeVal[len(currentNodeVal)-1] == 'Z'
+}
+
+func part2(data string) int {
+	lines := strings.Split(data, "\n")
+
+	instructions := []rune(lines[0])
+
+	nodes := createNodesMap(lines[2:])
+
+	g := graph.NewGraph()
+	g.CreateNodeMap(nodes)
+
+	// Create a slice of all start nodes
+	var startNodeKeys []string
+	for k, _ := range nodes {
+		if k[len(k)-1] == 'A' {
+			startNodeKeys = append(startNodeKeys, k)
+		}
+	}
+
+	counters := make([]int, len(startNodeKeys))
+
+	var wg sync.WaitGroup
+
+	for i, startNodeKey := range startNodeKeys {
+		wg.Add(1)
+		go func(
+			instructions []rune,
+			graph *graph.Graph,
+			startNodeKey string,
+			counter *int,
+		) {
+			defer wg.Done()
+			startNode := g.Vertices[startNodeKey]
+			*counter = graph.NumOfInstructions(
+				instructions,
+				startNode,
+				Part2FinalValCheck,
+			)
+		}(instructions, g, startNodeKey, &counters[i])
+	}
+	wg.Wait()
+
+	// After looking at reddit I found tips to use LCM (Least Common Multiple)
+	return math.LCM(counters)
 }
 
 func cleanNodeLine(line string) (string, []string) {

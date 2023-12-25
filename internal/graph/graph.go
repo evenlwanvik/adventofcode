@@ -62,19 +62,21 @@ func (g *Graph) PrintVertices() {
 	}
 }
 
-func (g *Graph) NumOfInstructions(instructions []rune) int {
+type IsFinalNode func(currentNodeVal string) bool
+
+func (g *Graph) NumOfInstructions(
+	instructions []rune,
+	startNode *Vertex,
+	finalValueFunc IsFinalNode,
+) int {
 	counter := 0
-	currNode := g.Vertices["AAA"]
-	finalNodeVal := "ZZZ"
-
+	currNode := startNode
 	for {
-
 		for _, instruction := range instructions {
-			if currNode.Val == finalNodeVal {
+			if finalValueFunc(currNode.Val) {
 				return counter
 			}
 			counter++
-
 			for _, edgeVertex := range currNode.Edges {
 				if edgeVertex.dir == instruction || len(currNode.Edges) == 1 {
 					currNode = edgeVertex.Vertex
